@@ -6,6 +6,7 @@ import { Auth } from './pages/auth/Auth'
 import { Register } from './pages/auth/Register'
 import { Dashboard } from './pages/app/dashboard/Dashboard'
 import { Orders } from './pages/app/order/Orders'
+import { NotFound } from './pages/app/404'
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +39,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '/*',
-    element: <div>404 Not Found</div>,
+    element: <NotFound />,
   },
 ])

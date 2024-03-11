@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
+import { registerRestaurant } from '@/api/registerRestaurant'
 
 const registerSchema = z.object({
   email: z.string().min(4, 'E-mail inválido').email('E-mail inválido'),
@@ -29,9 +31,13 @@ export const Register = () => {
 
   const navigate = useNavigate()
 
-  const onSubmit = (data: RegisterSchema) => {
+  const { mutateAsync } = useMutation({
+    mutationFn: registerRestaurant,
+  })
+
+  const onSubmit = async (data: RegisterSchema) => {
     try {
-      console.log(data)
+      await mutateAsync(data)
 
       toast.success('Restaurante cadastrado com sucesso!', {
         action: {

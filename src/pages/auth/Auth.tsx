@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { logIn } from '@/api/logIn'
+import { useEffect } from 'react'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido').min(4, 'E-mail inválido '),
@@ -18,12 +19,15 @@ const loginSchema = z.object({
 type LoginSchema = z.infer<typeof loginSchema>
 
 export const Auth = () => {
+  const [searchParams] = useSearchParams()
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { email: searchParams.get('email') || '' },
   })
 
   const { mutateAsync } = useMutation({

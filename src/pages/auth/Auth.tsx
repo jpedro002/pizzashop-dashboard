@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
+import { logIn } from '@/api/logIn'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido').min(4, 'E-mail inválido '),
@@ -24,9 +26,15 @@ export const Auth = () => {
     resolver: zodResolver(loginSchema),
   })
 
+  const { mutateAsync } = useMutation({
+    mutationFn: logIn,
+  })
+
   const onSubmit = async (data: LoginSchema) => {
     console.log(data)
     try {
+      await mutateAsync(data)
+
       toast.success('Enviamos um link de autenticação para seu e-mail.', {
         action: {
           label: 'Reenviar',

@@ -1,4 +1,4 @@
-import { Building, ChevronDown } from 'lucide-react'
+import { Building, ChevronDown, LogOut } from 'lucide-react'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -8,20 +8,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
-import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { getUserInformations } from '@/api/getUserInformations'
 import { getRestaurantInformations } from '@/api/getRestaurantInformations'
 import { Skeleton } from './ui/skeleton'
 import { StoreProfileDialog } from './StoreProfileDialog'
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog'
+import { logOut } from '@/api/logOut'
+import { useNavigate } from 'react-router-dom'
 
 export const AccountMenu = () => {
+  const navigate = useNavigate()
+
   const { data, isLoading: isLoadingUserInformations } = useQuery({
     queryKey: ['profile'],
     queryFn: getUserInformations,
     staleTime: Infinity,
   })
+
   const {
     data: restaurantInformations,
     isLoading: isLoadingRestaurantInformations,
@@ -29,6 +33,14 @@ export const AccountMenu = () => {
     queryKey: ['restaurantInformations'],
     queryFn: getRestaurantInformations,
     staleTime: Infinity,
+  })
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: logOut,
+    retry: 3,
+    onSuccess: () => {
+      navigate('/auth', { replace: true })
+    },
   })
 
   return (
@@ -70,11 +82,16 @@ export const AccountMenu = () => {
               <span>Perfil da loja</span>
             </DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem>
-            <StoreProfileDialog />
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link to="/logout">Logout</Link>
+
+          <DropdownMenuItem
+            asChild
+            disabled={isPending}
+            className="text-rose-500 dark:text-rose-400"
+          >
+            <button className="w-full" onClick={() => mutateAsync()}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
+            </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

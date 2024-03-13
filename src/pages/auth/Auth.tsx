@@ -10,7 +10,6 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { logIn } from '@/api/logIn'
-import { useEffect } from 'react'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido').min(4, 'E-mail inválido '),

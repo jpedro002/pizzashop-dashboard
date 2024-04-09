@@ -3,6 +3,8 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
 import colors from 'tailwindcss/colors'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useQuery } from '@tanstack/react-query'
+import { getPopularProducts } from '@/api/getPopularProducts'
 
 const COLORS = [
   colors.sky[500],
@@ -12,15 +14,12 @@ const COLORS = [
   colors.rose[500],
 ]
 
-const popularProducts = [
-  { product: '01/01', amount: 4000 },
-  { product: '02/01', amount: 2000 },
-  { product: '03/01', amount: 21000 },
-  { product: '04/01', amount: 6700 },
-  { product: '05/01', amount: 3400 },
-]
-
 export function PopularProductsChart() {
+  const { data: popularProducts } = useQuery({
+    queryKey: ['metrics', 'popular-products'],
+    queryFn: getPopularProducts,
+  })
+
   return (
     <Card className="col-span-3">
       <CardHeader className="pb-8">

@@ -1,4 +1,3 @@
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -9,15 +8,45 @@ import {
 
 import { Helmet } from 'react-helmet-async'
 import { OrderTableRow } from './OrderTableRow'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
+import { useSearchParams } from 'react-router-dom'
+import { z } from 'zod'
+import { useQuery } from '@tanstack/react-query'
+import { getOrders } from '@/api/getOrders'
+import { Pagination } from '@/components/Pagination'
+import { OrderTableSkeleton } from './OrderTableSkeleton'
+import { FilterOrders } from './FilterOrders'
 
 export const Orders = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const orderId = searchParams.get('orderId')
+  const customerName = searchParams.get('customerName')
+  const status = searchParams.get('status')
+
+  const pageIndex = z.coerce
+    .number()
+    .transform((page) => page - 1)
+    .parse(searchParams.get('page') ?? '1')
+
+  const { data: result, isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['orders', pageIndex, orderId, customerName, status],
+    queryFn: () =>
+      getOrders({
+        pageIndex,
+        orderId,
+        customerName,
+        status: status === 'all' ? null : status,
+      }),
+  })
+
+  function handlePaginate(pageIndex: number) {
+    setSearchParams((state) => {
+      state.set('page', (pageIndex + 1).toString())
+      return state
+    })
+  }
+
   return (
     <>
       <Helmet title="Pedidos" />
@@ -26,24 +55,7 @@ export const Orders = () => {
         <h1 className="text-3xl font-bold tracking-tight">Pedidos</h1>
       </div>
       <div className="space-y-2.5 ">
-        <form action="" className="flex items-center gap-2">
-          <span className="text-sm font-semibold">Filtros:</span>
-          <Input placeholder="ID do pedido" className="h-8 w-auto" />
-          <Input placeholder="Nome do cliente" className="h-8 w-[320px]" />
-          <Select defaultValue="all">
-            <SelectTrigger className="h-8 w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos status</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="canceled">Cancelado</SelectItem>
-              <SelectItem value="processing">Em preparo</SelectItem>
-              <SelectItem value="delivering">Em entrega</SelectItem>
-              <SelectItem value="delivered">Entregue</SelectItem>
-            </SelectContent>
-          </Select>
-        </form>
+        <FilterOrders />
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -59,10 +71,23 @@ export const Orders = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <OrderTableRow />
+              {result &&
+                result.orders.map((order) => {
+                  return <OrderTableRow key={order.orderId} order={order} />
+                })}
+
+              {isLoadingOrders && <OrderTableSkeleton />}
             </TableBody>
           </Table>
         </div>
+        {result && (
+          <Pagination
+            onPageChange={handlePaginate}
+            pageIndex={result.meta.pageIndex}
+            totalCount={result.meta.totalCount}
+            perPage={result.meta.perPage}
+          />
+        )}
       </div>
     </>
   )
